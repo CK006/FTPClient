@@ -1,0 +1,231 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+
+public class FTPClient {
+
+    public boolean isConnect=false;
+
+    public String currWd="/";
+
+    private static FTPClient ftpClient=new FTPClient();
+
+    private Process process;
+
+    private BufferedWriter bw;
+
+    private BufferedReader br;
+
+    private FTPClient(){ }
+
+    private void connCMD(){
+        if(process!=null) return;
+        try{
+            process=Runtime.getRuntime().exec("cmd");
+            bw=new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+            br=new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void unlinkedCMD(){
+        try {
+            bw.close();
+            br.close();
+            process.destroy();
+            process=null;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static FTPClient getFtpClient() {
+        return ftpClient;
+    }
+
+    public int uploadRate(){
+        return 0;
+    }
+    public int downloadRate(){
+        return 0;
+    }
+    public int connect(String host,int port,String user,String pwd){
+        connCMD();
+        int state=0;
+        String status="";
+        try {
+            String line;
+            bw.write("ftp.exe");
+            bw.newLine();
+            //bw.flush();
+            while (!(line=br.readLine()).isEmpty()){
+                System.out.println(line);
+            }
+            bw.write("connect "+host+" "+port+" "+user+" "+pwd);
+            bw.newLine();
+            bw.flush();
+            while ((line=br.readLine())!=null){
+                if(line.isEmpty()) continue;
+                System.out.println(line);
+                status+=line;
+                if(line.indexOf("status")!=-1){
+                   switch (Integer.parseInt(line.split(":")[1])){
+                        case 0:
+                            state=230;
+                            break;
+                        default:
+                            if(status.indexOf(530)!=-1) state=530;  //用户密码错误
+                            else if(status.indexOf(331)!=-1) state=331;  //需要密码
+                    }
+                    break;
+                }
+            }
+            isConnect=true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return state;
+    }
+    public int quit(){
+        int state=0;
+        String status="";
+        try {
+            String line;
+            bw.write("quit");
+            bw.newLine();
+            bw.flush();
+            while ((line=br.readLine())!=null){
+                if(line.isEmpty()) continue;
+                System.out.println(line);
+                status+=line;
+                if(line.indexOf("status")!=-1){
+                    state=Integer.parseInt(line.split(":")[1]);
+                    break;
+                }
+            }
+            if(state==221) unlinkedCMD();
+            isConnect=false;
+            currWd="/";
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return state;
+    }
+    public int mkd(String path){
+        String status="";
+        try {
+            bw.write("mkd "+path);
+            bw.newLine();
+            bw.flush();
+            status=br.readLine();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Integer.parseInt(status);
+    }
+    public List<String> list(String path){
+        int state;
+        List<String> status=new ArrayList<>();
+        try {
+            String line;
+            bw.write("list "+path);
+            bw.newLine();
+            bw.flush();
+            while ((line=br.readLine())!=null){
+                if(line.isEmpty()) continue;
+                System.out.println(line);
+                if(line.contains("ftp")) status.add(line.trim());
+                else if(line.indexOf("status")!=-1){
+                    state=Integer.parseInt(line.split(":")[1]);
+                    break;
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return status;
+    }
+    public int deletefolder(String path){
+        String status="";
+        try {
+            bw.write("delfolder "+path);
+            bw.newLine();
+            bw.flush();
+            status=br.readLine();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Integer.parseInt(status);
+    }
+    public int deletefile(String path){
+        String status="";
+        try {
+            bw.write("delfile "+path);
+            bw.newLine();
+            bw.flush();
+            status=br.readLine();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Integer.parseInt(status);
+    }
+    public int renamefile(String oldname,String newname){
+        String status="";
+        try {
+            bw.write("rename "+oldname+" "+newname);
+            bw.newLine();
+            bw.flush();
+            status=br.readLine();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Integer.parseInt(status);
+    }
+    public int server2local(String source,String dst){
+        int state=0;
+        String status="";
+        try {
+            bw.write("server2local "+source+" "+dst);
+            bw.newLine();
+            bw.flush();
+            String line;
+            while ((line=br.readLine())!=null){
+                if(line.isEmpty()) continue;
+                System.out.println(line);
+                if(line.indexOf("status")!=-1){
+                    state=Integer.parseInt(line.split(":")[1]);
+                    break;
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return state;
+    }
+    public int local2server(String source,String dst){
+        int state=0;
+        String status="";
+        try {
+            bw.write("local2server "+source+" "+dst);
+            bw.newLine();
+            bw.flush();
+            String line;
+            while ((line=br.readLine())!=null){
+                if(line.isEmpty()) continue;
+                System.out.println(line);
+                if(line.indexOf("status")!=-1){
+                    state=Integer.parseInt(line.split(":")[1]);
+                    break;
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return state;
+    }
+}

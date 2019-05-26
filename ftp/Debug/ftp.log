@@ -1,0 +1,3 @@
+﻿  ftp.cpp
+d:\programming\ftp\ftp\ftp\ftp.cpp(425): warning C4101: “result”: 未引用的局部变量
+  ftp.vcxproj -> D:\programming\ftp\ftp\Debug\ftp.exe

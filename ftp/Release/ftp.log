@@ -1,0 +1,8 @@
+﻿  ftp.cpp
+d:\programming\ftp\ftp\ftp\ftp.cpp(425): warning C4101: “result”: 未引用的局部变量
+  正在生成代码
+  2 of 182 functions ( 1.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  ftp.vcxproj -> D:\programming\ftp\ftp\Release\ftp.exe
